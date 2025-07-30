@@ -86,9 +86,14 @@ const state = (() => {
       // spawn circle 40px under player, depending on player rotation
       const { x, y } = state.player.position;
 
-      const angle = state.player.angle;
-      const offsetX = Math.cos(angle + Math.PI / 2) * 40;
-      const offsetY = Math.sin(angle + Math.PI / 2) * 40; // 90 degrees to the right
+      const angle = state.player.angle % (2 * Math.PI); // Ensure angle is within [0, 2π]
+
+      const spawnOnTop = angle < -Math.PI / 2 && angle > (-Math.PI * 3) / 2;
+      const offsetX =
+        Math.cos(angle + Math.PI / 2 + (spawnOnTop ? Math.PI : 0)) * 40;
+
+      const offsetY =
+        Math.sin(angle + Math.PI / 2 + (spawnOnTop ? Math.PI : 0)) * 40; // 90 degrees to the right
       const body = Bodies.circle(x + offsetX, y + offsetY, 10, {
         label: `dud-${bodies.length}`,
       });
