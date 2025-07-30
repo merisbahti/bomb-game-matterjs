@@ -91,10 +91,15 @@ Events.on(engine, "collisionStart", function (event) {
       return; // Skip static bodies and ground
     }
 
+    const distance = Math.sqrt(
+      (body.position.x - bombX) ** 2 + (body.position.y - bombY) ** 2,
+    );
+    const intensity = 1 - distance / radius;
+    console.log(intensity);
     // set velocity away from the bomb
     Body.setVelocity(body, {
-      x: (body.position.x - bombX) * 0.1,
-      y: (body.position.y - bombY) * 0.1,
+      x: (body.position.x - bombX) * 0.1 * intensity,
+      y: (body.position.y - bombY) * 0.1 * intensity,
     });
   });
 
