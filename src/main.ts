@@ -30,7 +30,7 @@ const state = (() => {
   return {
     bombs,
     spawnCircle: (x: number, y: number) => {
-      const body = Bodies.circle(x, y, 40cc, {
+      const body = Bodies.circle(x, y, 40, {
         label: `dud-${bodies.length}`,
       });
       bodies.push(body);
