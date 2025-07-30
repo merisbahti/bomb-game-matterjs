@@ -30,11 +30,8 @@ const state = (() => {
   return {
     bombs,
     spawnCircle: (x: number, y: number) => {
-      const body = Bodies.circle(x, y, 80, {
+      const body = Bodies.circle(x, y, 40cc, {
         label: `dud-${bodies.length}`,
-        render: {
-          fillStyle: "red",
-        },
       });
       bodies.push(body);
       Composite.add(engine.world, body);
@@ -42,15 +39,12 @@ const state = (() => {
     spawnSquare: (x: number, y: number) => {
       const body = Bodies.rectangle(x, y, 80, 80, {
         label: `dud-${bodies.length}`,
-        render: {
-          fillStyle: "red",
-        },
       });
       bodies.push(body);
       Composite.add(engine.world, body);
     },
     spawnBomb: (x: number, y: number) => {
-      const bombBody = Bodies.rectangle(x, y, 80, 80, {
+      const bombBody = Bodies.circle(x, y, 40, {
         label: `bomb-${bombs.length}`,
         render: {
           fillStyle: "red",
