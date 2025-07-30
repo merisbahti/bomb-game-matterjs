@@ -23,6 +23,13 @@ var render = Render.create({
     wireframes: false,
   },
 });
+
+window.addEventListener("resize", () => {
+  render.canvas.width = document.body.clientWidth;
+  render.canvas.height = document.body.clientHeight;
+  render.options.width = document.body.clientWidth;
+  render.options.height = document.body.clientHeight;
+});
 const mouse = MouseConstraint.create(engine, {});
 
 const state = (() => {
