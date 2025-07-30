@@ -30,12 +30,21 @@ const state = (() => {
   Composite.add(engine.world, player);
 
   return {
+    mousePos: { x: 0, y: 0 },
     player,
     bombs,
-    spawnCircle: (x: number, y: number) => {
-      const body = Bodies.circle(x, y, 40, {
+    spawnCircle: () => {
+      // spawn circle 40px under player, depending on player rotation
+      const { x, y } = state.player.position;
+
+      const angle = state.player.angle;
+      const offsetX = Math.sin(angle) * 40;
+      const offsetY = Math.cos(angle) * 40;
+      const body = Bodies.circle(x + offsetX, y + offsetY, 10, {
         label: `dud-${bodies.length}`,
+        velocity: { x: player.velocity.x * 10, y: player.velocity.y * 10 },
       });
+
       bodies.push(body);
       Composite.add(engine.world, body);
     },
@@ -64,6 +73,34 @@ var boxB = Bodies.rectangle(450, 50, 80, 80, { label: "boxB" });
 var ground = Bodies.rectangle(400, 610, 810, 60, {
   isStatic: true,
   label: "ground",
+});
+
+function anglePlayer() {
+  const { x, y } = state.mousePos;
+  const desiredAngle = Math.atan2(
+    y - state.player.position.y,
+    x - state.player.position.x,
+  );
+
+  const angle = state.player.angle;
+  // slowly rotate the player towards the desired angle
+  const angleDiff = desiredAngle - angle;
+  const rotationSpeed = 0.05; // Adjust this value to control the rotation speed
+  const angleDiffNormalized = ((angleDiff + Math.PI) % (2 * Math.PI)) - Math.PI; // Normalize to [-PI, PI]
+  const newAngle = angle + Math.sign(angleDiffNormalized) * rotationSpeed;
+
+  Body.setAngle(state.player, newAngle);
+  const speed = 2;
+  Body.setVelocity(state.player, {
+    x: Math.cos(angle) * speed,
+    y: Math.sin(angle) * speed,
+  });
+  requestAnimationFrame(() => {
+    anglePlayer();
+  });
+}
+requestAnimationFrame(() => {
+  anglePlayer();
 });
 
 Events.on(engine, "collisionStart", function (event) {
@@ -114,46 +151,21 @@ Events.on(engine, "collisionStart", function (event) {
     console.log("Bomb collision detected!", bodiesWithinRadius);
   }
 });
-const mousePos = { x: 0, y: 0 };
+
 document.addEventListener("click", ({ clientX, clientY }) => {
   console.log("click", clientX, clientY);
   // create a new box at the click position
 });
 document.addEventListener("mousemove", ({ clientX, clientY }) => {
-  mousePos.x = clientX;
-  mousePos.y = clientY;
-
-  const desiredAngle = Math.atan2(
-    clientY - state.player.position.y,
-    clientX - state.player.position.x,
-  );
-
-  const angle = state.player.angle;
-  console.log("angle", angle, state.player.angle);
-  // slowly rotate the player towards the desired angle
-  const angleDiff = desiredAngle - angle;
-  const rotationSpeed = 0.05; // Adjust this value to control the rotation speed
-  const angleDiffNormalized = ((angleDiff + Math.PI) % (2 * Math.PI)) - Math.PI; // Normalize to [-PI, PI]
-  const newAngle = angle + Math.sign(angleDiffNormalized) * rotationSpeed;
-
-  Body.setAngle(state.player, newAngle);
-  const speed = 10;
-  Body.setVelocity(state.player, {
-    x: Math.cos(angle) * speed,
-    y: Math.sin(angle) * speed,
-  });
-  console.log({
-    x: Math.cos(angle) * speed,
-    y: Math.sin(angle) * speed,
-  });
+  state.mousePos = { x: clientX, y: clientY };
 });
 document.addEventListener("keydown", (event) => {
   if (event.key === "b") {
-    state.spawnBomb(mousePos.x, mousePos.y);
+    state.spawnBomb(state.mousePos.x, state.mousePos.y);
   } else if (event.key === "d") {
-    state.spawnSquare(mousePos.x, mousePos.y);
+    state.spawnSquare(state.mousePos.x, state.mousePos.y);
   } else if (event.key === "c") {
-    state.spawnCircle(mousePos.x, mousePos.y);
+    state.spawnCircle();
   }
 });
 
