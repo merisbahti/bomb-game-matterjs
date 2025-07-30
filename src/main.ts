@@ -38,11 +38,14 @@ const state = (() => {
       const { x, y } = state.player.position;
 
       const angle = state.player.angle;
-      const offsetX = Math.sin(angle) * 40;
-      const offsetY = Math.cos(angle) * 40;
+      const offsetX = Math.cos(angle + Math.PI / 2) * 30;
+      const offsetY = Math.sin(angle + Math.PI / 2) * 30; // 90 degrees to the right
       const body = Bodies.circle(x + offsetX, y + offsetY, 10, {
         label: `dud-${bodies.length}`,
-        velocity: { x: player.velocity.x * 10, y: player.velocity.y * 10 },
+      });
+      Body.setVelocity(body, {
+        x: Math.cos(angle) * 50,
+        y: Math.sin(angle) * 50,
       });
 
       bodies.push(body);
@@ -55,15 +58,20 @@ const state = (() => {
       bodies.push(body);
       Composite.add(engine.world, body);
     },
-    spawnBomb: (x: number, y: number) => {
-      const bombBody = Bodies.circle(x, y, 40, {
-        label: `bomb-${bombs.length}`,
-        render: {
-          fillStyle: "red",
-        },
+    spawnBomb: () => {
+      // spawn circle 40px under player, depending on player rotation
+      const { x, y } = state.player.position;
+
+      const angle = state.player.angle;
+      const offsetX = Math.cos(angle + Math.PI / 2) * 40;
+      const offsetY = Math.sin(angle + Math.PI / 2) * 40; // 90 degrees to the right
+      const body = Bodies.circle(x + offsetX, y + offsetY, 10, {
+        label: `dud-${bodies.length}`,
       });
-      bombs.push(bombBody);
-      Composite.add(engine.world, bombBody);
+      Body.setVelocity(body, state.player.velocity);
+
+      bombs.push(body);
+      Composite.add(engine.world, body);
     },
   };
 })();
@@ -161,7 +169,7 @@ document.addEventListener("mousemove", ({ clientX, clientY }) => {
 });
 document.addEventListener("keydown", (event) => {
   if (event.key === "b") {
-    state.spawnBomb(state.mousePos.x, state.mousePos.y);
+    state.spawnBomb();
   } else if (event.key === "d") {
     state.spawnSquare(state.mousePos.x, state.mousePos.y);
   } else if (event.key === "c") {
