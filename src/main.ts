@@ -1,8 +1,6 @@
 import Matter, {
   Engine,
   Render,
-  Bounds,
-  Mouse,
   Runner,
   Body,
   Bodies,
@@ -48,6 +46,7 @@ const state = (() => {
   };
 
   return {
+    canvasMousePos: { x: 0, y: 0 }, // initial mouse position,
     get mousePos() {
       return getWorldMousePos();
     },
