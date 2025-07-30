@@ -24,10 +24,13 @@ var render = Render.create({
 });
 
 const state = (() => {
-  const bombs: Array<Matter.Body> = [];
+  const bombs: Array<Matter.Body> = []; // @TODO: use collisionfilter
   const bodies: Array<Matter.Body> = [];
+  const player = Bodies.rectangle(400, 200, 80, 40);
+  Composite.add(engine.world, player);
 
   return {
+    player,
     bombs,
     spawnCircle: (x: number, y: number) => {
       const body = Bodies.circle(x, y, 40, {
@@ -119,6 +122,30 @@ document.addEventListener("click", ({ clientX, clientY }) => {
 document.addEventListener("mousemove", ({ clientX, clientY }) => {
   mousePos.x = clientX;
   mousePos.y = clientY;
+
+  const desiredAngle = Math.atan2(
+    clientY - state.player.position.y,
+    clientX - state.player.position.x,
+  );
+
+  const angle = state.player.angle;
+  console.log("angle", angle, state.player.angle);
+  // slowly rotate the player towards the desired angle
+  const angleDiff = desiredAngle - angle;
+  const rotationSpeed = 0.05; // Adjust this value to control the rotation speed
+  const angleDiffNormalized = ((angleDiff + Math.PI) % (2 * Math.PI)) - Math.PI; // Normalize to [-PI, PI]
+  const newAngle = angle + Math.sign(angleDiffNormalized) * rotationSpeed;
+
+  Body.setAngle(state.player, newAngle);
+  const speed = 10;
+  Body.setVelocity(state.player, {
+    x: Math.cos(angle) * speed,
+    y: Math.sin(angle) * speed,
+  });
+  console.log({
+    x: Math.cos(angle) * speed,
+    y: Math.sin(angle) * speed,
+  });
 });
 document.addEventListener("keydown", (event) => {
   if (event.key === "b") {
