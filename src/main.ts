@@ -97,7 +97,19 @@ const state = (() => {
       const body = Bodies.circle(x + offsetX, y + offsetY, 10, {
         label: `dud-${bodies.length}`,
       });
-      Body.setVelocity(body, state.player.velocity);
+
+      const outpushSpeed = 10;
+
+      Body.setVelocity(body, {
+        x:
+          state.player.velocity.x +
+          outpushSpeed *
+            Math.cos(angle + (spawnOnTop ? -1 : 1) * (Math.PI / 2)),
+        y:
+          state.player.velocity.y +
+          outpushSpeed *
+            Math.sin(angle + ((spawnOnTop ? -1 : 1) * Math.PI) / 2),
+      });
 
       bombs.push(body);
       Composite.add(engine.world, body);
