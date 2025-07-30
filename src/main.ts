@@ -27,18 +27,28 @@ var render = Render.create({
 
 const state = (() => {
   const bombs: Array<Matter.Body> = [];
-  const duds: Array<Matter.Body> = [];
+  const bodies: Array<Matter.Body> = [];
 
   return {
     bombs,
-    spawnDud: (x: number, y: number) => {
-      const body = Bodies.rectangle(x, y, 80, 80, {
-        label: `dud-${duds.length}`,
+    spawnCircle: (x: number, y: number) => {
+      const body = Bodies.circle(x, y, 80, {
+        label: `dud-${bodies.length}`,
         render: {
           fillStyle: "red",
         },
       });
-      duds.push(body);
+      bodies.push(body);
+      Composite.add(engine.world, body);
+    },
+    spawnSquare: (x: number, y: number) => {
+      const body = Bodies.rectangle(x, y, 80, 80, {
+        label: `dud-${bodies.length}`,
+        render: {
+          fillStyle: "red",
+        },
+      });
+      bodies.push(body);
       Composite.add(engine.world, body);
     },
     spawnBomb: (x: number, y: number) => {
@@ -118,7 +128,9 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "b") {
     state.spawnBomb(mousePos.x, mousePos.y);
   } else if (event.key === "d") {
-    state.spawnDud(mousePos.x, mousePos.y);
+    state.spawnSquare(mousePos.x, mousePos.y);
+  } else if (event.key === "c") {
+    state.spawnCircle(mousePos.x, mousePos.y);
   }
 });
 
