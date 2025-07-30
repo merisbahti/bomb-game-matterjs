@@ -59,15 +59,15 @@ const state = (() => {
       const { x, y } = state.player.position;
 
       const angle = state.player.angle;
-      const offsetX = Math.cos(angle) * 30;
-      const offsetY = Math.sin(angle) * 30; // 90 degrees to the right
+      const offsetX = Math.cos(angle) * 60;
+      const offsetY = Math.sin(angle) * 60; // 90 degrees to the right
       const body = Bodies.circle(x + offsetX, y + offsetY, 10, {
         label: `dud-${bodies.length}`,
       });
-      Body.setMass(body, 30);
+      Body.setMass(body, 0.5);
       Body.setVelocity(body, {
-        x: Math.cos(angle) * 100,
-        y: Math.sin(angle) * 100,
+        x: Math.cos(angle) * 50 + state.player.velocity.x,
+        y: Math.sin(angle) * 50 + state.player.velocity.x,
       });
 
       bodies.push(body);
