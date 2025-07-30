@@ -6,9 +6,7 @@ import {
   Bodies,
   Composite,
   Events,
-  Detector,
   Query,
-  Bounds,
 } from "matter-js";
 // module aliases
 
@@ -96,7 +94,9 @@ Events.on(engine, "collisionStart", function (event) {
     // remove the bomb from the world
     Composite.remove(engine.world, collidedBomb);
 
-    // apply force to all bodies within the radius
+    // @TODO: actually model this as a force.
+    // It should be added to state, and should apply over 200ms or so.
+
     bodiesWithinRadius.forEach((body) => {
       if (body.isStatic) {
         return; // Skip static bodies and ground
@@ -106,7 +106,7 @@ Events.on(engine, "collisionStart", function (event) {
         (body.position.x - bombX) ** 2 + (body.position.y - bombY) ** 2,
       );
       const intensity = 1 - distance / radius;
-      console.log(intensity);
+
       // set velocity away from the bomb
       Body.setVelocity(body, {
         x: (body.position.x - bombX) * 0.1 * intensity,
