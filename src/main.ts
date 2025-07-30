@@ -1,12 +1,15 @@
-import {
+import Matter, {
   Engine,
   Render,
+  Bounds,
+  Mouse,
   Runner,
   Body,
   Bodies,
   Composite,
   Events,
   Query,
+  MouseConstraint,
 } from "matter-js";
 // module aliases
 
@@ -22,6 +25,7 @@ var render = Render.create({
     wireframes: false,
   },
 });
+const mouse = MouseConstraint.create(engine, {});
 
 const state = (() => {
   const bombs: Array<Matter.Body> = []; // @TODO: use collisionfilter
@@ -29,8 +33,25 @@ const state = (() => {
   const player = Bodies.rectangle(400, 200, 80, 40);
   Composite.add(engine.world, player);
 
+  const getWorldMousePos = () => {
+    const mousePosition = mouse.mouse.position;
+    const xPercent = mousePosition.x / render.canvas.width;
+    const yPercent = mousePosition.y / render.canvas.height;
+    return {
+      x:
+        render.bounds.min.x +
+        xPercent * (render.bounds.max.x - render.bounds.min.x),
+      y:
+        render.bounds.min.y +
+        yPercent * (render.bounds.max.y - render.bounds.min.y),
+    };
+  };
+
   return {
-    mousePos: { x: 0, y: 0 },
+    get mousePos() {
+      return getWorldMousePos();
+    },
+
     player,
     bombs,
     spawnCircle: () => {
@@ -38,21 +59,24 @@ const state = (() => {
       const { x, y } = state.player.position;
 
       const angle = state.player.angle;
-      const offsetX = Math.cos(angle + Math.PI / 2) * 30;
-      const offsetY = Math.sin(angle + Math.PI / 2) * 30; // 90 degrees to the right
+      const offsetX = Math.cos(angle) * 30;
+      const offsetY = Math.sin(angle) * 30; // 90 degrees to the right
       const body = Bodies.circle(x + offsetX, y + offsetY, 10, {
         label: `dud-${bodies.length}`,
       });
+      Body.setMass(body, 30);
       Body.setVelocity(body, {
-        x: Math.cos(angle) * 50,
-        y: Math.sin(angle) * 50,
+        x: Math.cos(angle) * 100,
+        y: Math.sin(angle) * 100,
       });
 
       bodies.push(body);
       Composite.add(engine.world, body);
     },
-    spawnSquare: (x: number, y: number) => {
-      const body = Bodies.rectangle(x, y, 80, 80, {
+    spawnSquare: () => {
+      const mousePosition = getWorldMousePos();
+
+      const body = Bodies.rectangle(mousePosition.x, mousePosition.y, 80, 80, {
         label: `dud-${bodies.length}`,
       });
       bodies.push(body);
@@ -78,16 +102,18 @@ const state = (() => {
 // create two boxes and a ground
 var boxA = Bodies.rectangle(400, 200, 80, 80, { label: "boxA" });
 var boxB = Bodies.rectangle(450, 50, 80, 80, { label: "boxB" });
-var ground = Bodies.rectangle(400, 610, 810, 60, {
+var ground = Bodies.rectangle(400, 610, 4000, 60, {
   isStatic: true,
   label: "ground",
+  render: {
+    fillStyle: "#00ff00",
+  },
 });
 
 function anglePlayer() {
-  const { x, y } = state.mousePos;
   const desiredAngle = Math.atan2(
-    y - state.player.position.y,
-    x - state.player.position.x,
+    state.mousePos.y - state.player.position.y,
+    state.mousePos.x - state.player.position.x,
   );
 
   const angle = state.player.angle;
@@ -98,11 +124,17 @@ function anglePlayer() {
   const newAngle = angle + Math.sign(angleDiffNormalized) * rotationSpeed;
 
   Body.setAngle(state.player, newAngle);
-  const speed = 2;
+  const speed = 5;
+
   Body.setVelocity(state.player, {
     x: Math.cos(angle) * speed,
     y: Math.sin(angle) * speed,
   });
+  Render.lookAt(
+    render,
+    { position: state.player.position },
+    { x: 2000, y: 2000 },
+  );
   requestAnimationFrame(() => {
     anglePlayer();
   });
@@ -151,8 +183,8 @@ Events.on(engine, "collisionStart", function (event) {
 
       // set velocity away from the bomb
       Body.setVelocity(body, {
-        x: (body.position.x - bombX) * 0.1 * intensity,
-        y: (body.position.y - bombY) * 0.1 * intensity,
+        x: (body.position.x - bombX) * 0.5 * intensity,
+        y: (body.position.y - bombY) * 0.5 * intensity,
       });
     });
 
@@ -161,17 +193,16 @@ Events.on(engine, "collisionStart", function (event) {
 });
 
 document.addEventListener("click", ({ clientX, clientY }) => {
-  console.log("click", clientX, clientY);
-  // create a new box at the click position
+  state.canvasMousePos = { x: clientX, y: clientY };
 });
 document.addEventListener("mousemove", ({ clientX, clientY }) => {
-  state.mousePos = { x: clientX, y: clientY };
+  state.canvasMousePos = { x: clientX, y: clientY };
 });
 document.addEventListener("keydown", (event) => {
   if (event.key === "b") {
     state.spawnBomb();
   } else if (event.key === "d") {
-    state.spawnSquare(state.mousePos.x, state.mousePos.y);
+    state.spawnSquare();
   } else if (event.key === "c") {
     state.spawnCircle();
   }
