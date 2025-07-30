@@ -72,48 +72,50 @@ var ground = Bodies.rectangle(400, 610, 810, 60, {
 });
 
 Events.on(engine, "collisionStart", function (event) {
-  const collidedBomb = state.bombs.find((bomb) =>
+  const collidedBombs = state.bombs.filter((bomb) =>
     event.pairs.flatMap(({ bodyA, bodyB }) => [bodyA, bodyB]).includes(bomb),
   );
-  if (!collidedBomb) {
+  if (!collidedBombs) {
     return;
   }
 
-  const radius = 400;
-  const { x: bombX, y: bombY } = collidedBomb.position;
+  for (const collidedBomb of collidedBombs) {
+    const radius = 400;
+    const { x: bombX, y: bombY } = collidedBomb.position;
 
-  const bodiesInRegion = Query.region(engine.world.bodies, {
-    min: { x: bombX - radius, y: bombY - radius },
-    max: { x: bombX + radius, y: bombY + radius },
-  });
-  const bodiesWithinRadius = bodiesInRegion.filter((body) => {
-    const dx = body.position.x - bombX;
-    const dy = body.position.y - bombY;
-    return Math.sqrt(dx * dx + dy * dy) <= radius;
-  });
-
-  // remove the bomb from the world
-  Composite.remove(engine.world, collidedBomb);
-
-  // apply force to all bodies within the radius
-  bodiesWithinRadius.forEach((body) => {
-    if (body.isStatic) {
-      return; // Skip static bodies and ground
-    }
-
-    const distance = Math.sqrt(
-      (body.position.x - bombX) ** 2 + (body.position.y - bombY) ** 2,
-    );
-    const intensity = 1 - distance / radius;
-    console.log(intensity);
-    // set velocity away from the bomb
-    Body.setVelocity(body, {
-      x: (body.position.x - bombX) * 0.1 * intensity,
-      y: (body.position.y - bombY) * 0.1 * intensity,
+    const bodiesInRegion = Query.region(engine.world.bodies, {
+      min: { x: bombX - radius, y: bombY - radius },
+      max: { x: bombX + radius, y: bombY + radius },
     });
-  });
+    const bodiesWithinRadius = bodiesInRegion.filter((body) => {
+      const dx = body.position.x - bombX;
+      const dy = body.position.y - bombY;
+      return Math.sqrt(dx * dx + dy * dy) <= radius;
+    });
 
-  console.log("Bomb collision detected!", bodiesWithinRadius);
+    // remove the bomb from the world
+    Composite.remove(engine.world, collidedBomb);
+
+    // apply force to all bodies within the radius
+    bodiesWithinRadius.forEach((body) => {
+      if (body.isStatic) {
+        return; // Skip static bodies and ground
+      }
+
+      const distance = Math.sqrt(
+        (body.position.x - bombX) ** 2 + (body.position.y - bombY) ** 2,
+      );
+      const intensity = 1 - distance / radius;
+      console.log(intensity);
+      // set velocity away from the bomb
+      Body.setVelocity(body, {
+        x: (body.position.x - bombX) * 0.1 * intensity,
+        y: (body.position.y - bombY) * 0.1 * intensity,
+      });
+    });
+
+    console.log("Bomb collision detected!", bodiesWithinRadius);
+  }
 });
 const mousePos = { x: 0, y: 0 };
 document.addEventListener("click", ({ clientX, clientY }) => {
