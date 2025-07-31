@@ -5,6 +5,7 @@ import Matter, {
   Engine,
   MouseConstraint,
   Render,
+  Vector,
 } from "matter-js";
 import { normalizeAngle } from "./utils";
 
@@ -48,15 +49,21 @@ export const createState = (
 
       const angle = player.angle;
       const offsetX = Math.cos(angle) * 60;
-      const offsetY = Math.sin(angle) * 60; // 90 degrees to the right
+      const offsetY = Math.sin(angle) * 60;
       const body = Bodies.circle(x + offsetX, y + offsetY, 10, {
         label: `dud-${bodies.length}`,
       });
       Body.setMass(body, 0.5);
-      Body.setVelocity(body, {
-        x: Math.cos(angle) * 50 + player.velocity.x,
-        y: Math.sin(angle) * 50 + player.velocity.x,
-      });
+      Body.setVelocity(
+        body,
+        Vector.add(
+          {
+            x: Math.cos(angle) * 50,
+            y: Math.sin(angle) * 50,
+          },
+          player.velocity,
+        ),
+      );
 
       bodies.push(body);
       Composite.add(engine.world, body);

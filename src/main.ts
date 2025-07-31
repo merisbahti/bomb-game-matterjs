@@ -8,7 +8,6 @@ import Matter, {
   Events,
   Query,
   MouseConstraint,
-  Vector,
 } from "matter-js";
 import { createState } from "./state";
 import { normalizeAngle } from "./utils";
