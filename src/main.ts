@@ -32,10 +32,18 @@ window.addEventListener("resize", () => {
 });
 const mouse = MouseConstraint.create(engine, {});
 
+document.body.addEventListener("keydown", (event) => {
+  state.keysDown.add(event.key);
+});
+document.body.addEventListener("keyup", (event) => {
+  state.keysDown.delete(event.key);
+});
+
 const state = (() => {
   const bombs: Array<Matter.Body> = []; // @TODO: use collisionfilter
   const bodies: Array<Matter.Body> = [];
   const player = Bodies.rectangle(400, 200, 80, 40);
+  const keysDown = new Set<string>();
   Composite.add(engine.world, player);
 
   const getWorldMousePos = () => {
@@ -53,6 +61,7 @@ const state = (() => {
   };
 
   return {
+    keysDown,
     canvasMousePos: { x: 0, y: 0 }, // initial mouse position,
     get mousePos() {
       return getWorldMousePos();
@@ -156,10 +165,12 @@ function anglePlayer() {
 
   Body.setAngularVelocity(state.player, angleDiff * turnSpeed);
 
-  Body.applyForce(state.player, state.player.position, {
-    x: Math.cos(angle) * 0.004,
-    y: Math.sin(angle) * 0.004,
-  });
+  if (state.keysDown.has("z")) {
+    Body.applyForce(state.player, state.player.position, {
+      x: Math.cos(angle) * 0.004,
+      y: Math.sin(angle) * 0.004,
+    });
+  }
   Render.lookAt(
     render,
     { position: state.player.position },
