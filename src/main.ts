@@ -92,7 +92,7 @@ const state = (() => {
       // spawn circle 40px under player, depending on player rotation
       const { x, y } = state.player.position;
 
-      const angle = state.player.angle % (2 * Math.PI); // Ensure angle is within [0, 2π]
+      const angle = normalizeAngle(state.player.angle); // Ensure angle is within [0, 2π]
 
       const spawnOnTop = angle < -Math.PI / 2 && angle > (-Math.PI * 3) / 2;
       const offsetX =
@@ -133,6 +133,15 @@ var ground = Bodies.rectangle(400, 610, 4000, 60, {
   },
 });
 
+const normalizeAngle = (angle: number) => {
+  if (angle > Math.PI) {
+    return angle - 2 * Math.PI;
+  } else if (angle < -Math.PI) {
+    return angle + 2 * Math.PI;
+  }
+  return angle;
+};
+
 function anglePlayer() {
   const desiredAngle = Math.atan2(
     state.mousePos.y - state.player.position.y,
@@ -141,17 +150,15 @@ function anglePlayer() {
 
   const angle = state.player.angle;
   // slowly rotate the player towards the desired angle
-  const angleDiff = desiredAngle - angle;
-  const rotationSpeed = 0.05; // Adjust this value to control the rotation speed
-  const angleDiffNormalized = ((angleDiff + Math.PI) % (2 * Math.PI)) - Math.PI; // Normalize to [-PI, PI]
-  const newAngle = angle + Math.sign(angleDiffNormalized) * rotationSpeed;
+  const angleDiff = normalizeAngle(desiredAngle - angle);
 
-  Body.setAngle(state.player, newAngle);
-  const speed = 5;
+  const turnSpeed = 0.05; // Adjust this value to control the rotation speed
 
-  Body.setVelocity(state.player, {
-    x: Math.cos(angle) * speed,
-    y: Math.sin(angle) * speed,
+  Body.setAngularVelocity(state.player, angleDiff * turnSpeed);
+
+  Body.applyForce(state.player, state.player.position, {
+    x: Math.cos(angle) * 0.004,
+    y: Math.sin(angle) * 0.004,
   });
   Render.lookAt(
     render,
@@ -171,6 +178,7 @@ Events.on(engine, "collisionStart", function (event) {
     bodyA,
     bodyB,
   ]);
+
   const collidedBombs = state.bombs.filter((bomb) =>
     collidedBodies.includes(bomb),
   );
