@@ -156,7 +156,7 @@ function anglePlayer() {
   Render.lookAt(
     render,
     { position: state.player.position },
-    { x: 2000, y: 2000 },
+    { x: 1500, y: 1500 },
   );
   requestAnimationFrame(() => {
     anglePlayer();
@@ -167,8 +167,12 @@ requestAnimationFrame(() => {
 });
 
 Events.on(engine, "collisionStart", function (event) {
+  const collidedBodies = event.pairs.flatMap(({ bodyA, bodyB }) => [
+    bodyA,
+    bodyB,
+  ]);
   const collidedBombs = state.bombs.filter((bomb) =>
-    event.pairs.flatMap(({ bodyA, bodyB }) => [bodyA, bodyB]).includes(bomb),
+    collidedBodies.includes(bomb),
   );
   if (!collidedBombs) {
     return;
